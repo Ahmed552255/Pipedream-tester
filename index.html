@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pipedream Test Uploader</title>
+</head>
+<body>
+
+    <h1>أداة اختبار Pipedream</h1>
+    <p>اختر ملفاً ثم اضغط "إرسال" لتعليم Pipedream.</p>
+
+    <form id="testForm">
+        <input type="file" id="testFile" required>
+        <button type="submit">إرسال طلب الاختبار</button>
+    </form>
+
+    <h2 id="status"></h2>
+
+    <script>
+        const testForm = document.getElementById('testForm');
+        const testFile = document.getElementById('testFile');
+        const status = document.getElementById('status');
+
+        // !!! الصق رابط Pipedream الخاص بك هنا !!!
+        const pipedreamUrl = "https://eomc3zt6qn9kgni.m.pipedream.net";
+
+        testForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = testFile.files[0];
+            if (!file) {
+                status.textContent = "الرجاء اختيار ملف أولاً.";
+                return;
+            }
+
+            status.textContent = "جارٍ إرسال الملف...";
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(pipedreamUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    status.textContent = "نجح الإرسال! ارجع الآن إلى Pipedream.";
+                    status.style.color = 'green';
+                } else {
+                    status.textContent = `فشل الإرسال: ${response.statusText}`;
+                    status.style.color = 'red';
+                }
+            } catch (error) {
+                status.textContent = `حدث خطأ: ${error.message}`;
+                status.style.color = 'red';
+            }
+        });
+    </script>
+
+</body>
+</html>
