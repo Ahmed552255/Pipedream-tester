@@ -1,61 +1,465 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pipedream Test Uploader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>همسة جديدة | إنشاء منشور</title>
+    
+    <!-- Google Fonts for a modern, elegant look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for beautiful icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #5865F2; /* Discord Blurple */
+            --primary-hover-color: #4752C4;
+            --background-gradient: linear-gradient(135deg, #23272A 0%, #2C2F33 100%);
+            --card-background: #36393F;
+            --text-color: #FFFFFF;
+            --label-color: #B9BBBE;
+            --border-color: #40444B;
+            --input-background: #202225;
+            --error-color: #ED4245;
+            --success-color: #57F287;
+            --info-color: #4F80F7;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--background-gradient);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .post-container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+            border: 1px solid var(--border-color);
+            transform: scale(0.95);
+            opacity: 0;
+            animation: fadeInScale 0.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInScale {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            color: #72767d;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+        .close-btn:hover {
+            color: var(--text-color);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .container-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .container-header i {
+            font-size: 36px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .container-header h2 {
+            font-size: 28px;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: var(--label-color);
+            font-size: 15px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            background-color: var(--input-background);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.3);
+        }
+        input::placeholder, textarea::placeholder {
+            color: #72767d;
+        }
+
+        .file-upload-wrapper {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .file-upload-wrapper.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(88, 101, 242, 0.1);
+        }
+        .file-upload-wrapper i {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .file-upload-wrapper p {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .file-upload-wrapper span {
+            font-size: 13px;
+            color: #999;
+        }
+        #fileUpload {
+            display: none;
+        }
+        #file-preview {
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--label-color);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: popIn 0.3s;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
+        }
+        button:disabled {
+            background-color: #5c6471;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            animation: popIn 0.3s;
+        }
+        .status-info { background-color: rgba(79, 128, 247, 0.15); color: var(--info-color); border: 1px solid var(--info-color);}
+        .status-success { background-color: rgba(87, 242, 135, 0.15); color: var(--success-color); border: 1px solid var(--success-color);}
+        .status-error { background-color: rgba(237, 66, 69, 0.15); color: var(--error-color); border: 1px solid var(--error-color);}
+
+    </style>
 </head>
 <body>
 
-    <h1>أداة اختبار Pipedream</h1>
-    <p>اختر ملفاً ثم اضغط "إرسال" لتعليم Pipedream.</p>
+    <div class="post-container">
+        <a href="post.html" class="close-btn" title="إغلاق">&times;</a>
+        
+        <div class="container-header">
+            <i class="fas fa-paper-plane"></i>
+            <h2>همسة جديدة</h2>
+        </div>
 
-    <form id="testForm">
-        <input type="file" id="testFile" required>
-        <button type="submit">إرسال طلب الاختبار</button>
-    </form>
+        <form id="postForm">
+            <div class="form-group">
+                <label for="postTitle">العنوان</label>
+                <input type="text" id="postTitle" placeholder="ما هو عنوان همستك؟" required>
+            </div>
 
-    <h2 id="status"></h2>
+            <div class="form-group">
+                <label for="postContent">المحتوى</label>
+                <textarea id="postContent" placeholder="اكتب ما يجول في خاطرك..."></textarea>
+            </div>
 
-    <script>
-        const testForm = document.getElementById('testForm');
-        const testFile = document.getElementById('testFile');
-        const status = document.getElementById('status');
+            <div class="form-group">
+                <label for="fileUpload">إرفاق ملف (اختياري)</label>
+                <div class="file-upload-wrapper" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>اسحب وأفلت ملفاً هنا أو انقر للاختيار</p>
+                    <span>(صور، فيديوهات، مستندات)</span>
+                </div>
+                <input type="file" id="fileUpload">
+                <div id="file-preview"></div>
+            </div>
 
-        // !!! الصق رابط Pipedream الخاص بك هنا !!!
-        const pipedreamUrl = "https://eorxquu55r4wvbi.m.pipedream.net";
+            <button type="submit" id="submitBtn">
+                <span id="submit-text">أرسل همستك</span>
+                <div id="submit-spinner" class="spinner" style="display: none;"></div>
+            </button>
+        </form>
+        <div id="status"></div>
+    </div>
 
-        testForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const file = testFile.files[0];
-            if (!file) {
-                status.textContent = "الرجاء اختيار ملف أولاً.";
-                return;
-            }
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-            status.textContent = "جارٍ إرسال الملف...";
+      const firebaseConfig = {
+        apiKey: "AIzaSyDz_qllXBep9VXD4FI2vHA6hHYPWEsNXWE",
+        authDomain: "final2-bab9c.firebaseapp.com",
+        databaseURL: "https://final2-bab9c-default-rtdb.firebaseio.com",
+        projectId: "final2-bab9c",
+        storageBucket: "final2-bab9c.appspot.com",
+        messagingSenderId: "215090497151",
+        appId: "1:215090497151:web:d28a0257b60b1bd89e614a"
+      };
 
-            const formData = new FormData();
-            formData.append('file', file);
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const database = getDatabase(app);
 
-            try {
-                const response = await fetch(pipedreamUrl, {
+      // --- الرابط السحري ---
+      const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1435726004910952469/Glbn8tXRfNoe6iscbcixFdwtRIeFQBVsmJL2BAKBP7T1KOc0rb6MNPe44KNqhFKy6V4F";
+
+      // --- عناصر الواجهة ---
+      const ui = {
+          form: document.getElementById('postForm'),
+          title: document.getElementById('postTitle'),
+          content: document.getElementById('postContent'),
+          fileInput: document.getElementById('fileUpload'),
+          filePreview: document.getElementById('file-preview'),
+          dropZone: document.getElementById('dropZone'),
+          submitBtn: document.getElementById('submitBtn'),
+          submitText: document.getElementById('submit-text'),
+          submitSpinner: document.getElementById('submit-spinner'),
+          statusDiv: document.getElementById('status'),
+      };
+
+      let currentUser = null;
+
+      // --- دوال مساعدة ---
+      function showStatus(message, type = 'info') {
+          ui.statusDiv.textContent = message;
+          ui.statusDiv.className = `status-${type}`;
+          ui.statusDiv.style.display = 'block';
+      }
+
+      function hideStatus() {
+          ui.statusDiv.style.display = 'none';
+      }
+
+      function setLoading(isLoading) {
+          ui.submitBtn.disabled = isLoading;
+          ui.submitText.style.display = isLoading ? 'none' : 'inline';
+          ui.submitSpinner.style.display = isLoading ? 'inline-block' : 'none';
+      }
+
+      function getFileIcon(fileName) {
+          const extension = fileName.split('.').pop().toLowerCase();
+          if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) return 'fa-solid fa-file-image';
+          if (['mp4', 'mov', 'avi', 'mkv'].includes(extension)) return 'fa-solid fa-file-video';
+          if (['mp3', 'wav', 'ogg'].includes(extension)) return 'fa-solid fa-file-audio';
+          if (['pdf'].includes(extension)) return 'fa-solid fa-file-pdf';
+          if (['doc', 'docx'].includes(extension)) return 'fa-solid fa-file-word';
+          if (['xls', 'xlsx'].includes(extension)) return 'fa-solid fa-file-excel';
+          if (['zip', 'rar', '7z'].includes(extension)) return 'fa-solid fa-file-zipper';
+          return 'fa-solid fa-file';
+      }
+
+      // --- معالجات الأحداث ---
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+        } else {
+          // إذا لم يكن المستخدم مسجلاً، يتم تحويله إلى صفحة index.html
+          // window.location.href = 'index.html';
+          console.warn("المستخدم غير مسجل. تم تعطيل التحويل لأغراض الاختبار.");
+        }
+      });
+
+      // السحب والإفلات
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        ui.dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+      ['dragenter', 'dragover'].forEach(eventName => {
+        ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.add('dragover'), false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.remove('dragover'), false);
+      });
+      ui.dropZone.addEventListener('drop', (e) => {
+        ui.fileInput.files = e.dataTransfer.files;
+        const event = new Event('change');
+        ui.fileInput.dispatchEvent(event);
+      }, false);
+
+      ui.dropZone.addEventListener('click', () => ui.fileInput.click());
+
+      ui.fileInput.addEventListener('change', () => {
+          if (ui.fileInput.files.length > 0) {
+              const file = ui.fileInput.files[0];
+              const iconClass = getFileIcon(file.name);
+              ui.filePreview.innerHTML = `<i class="${iconClass}"></i> <span>${file.name}</span>`;
+          } else {
+              ui.filePreview.innerHTML = '';
+          }
+      });
+
+      ui.form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!currentUser) {
+            showStatus('يجب تسجيل الدخول أولاً لنشر همستك.', 'error');
+            return;
+        }
+        
+        if (!ui.title.value.trim() && !ui.content.value.trim() && !ui.fileInput.files[0]) {
+            showStatus('المنشور فارغ! يرجى كتابة عنوان أو محتوى أو إرفاق ملف.', 'error');
+            return;
+        }
+
+        setLoading(true);
+        hideStatus();
+
+        const title = ui.title.value;
+        const content = ui.content.value;
+        const file = ui.fileInput.files[0];
+        let discordFileUrl = null;
+
+        try {
+            // --- الخطوة 1: رفع الملف إلى ديسكورد (إذا وجد) ---
+            if (file) {
+                showStatus('1/2: جارٍ رفع الملف المرفق...', 'info');
+                const formData = new FormData();
+                formData.append('file1', file);
+                formData.append('content', `ملف جديد تم رفعه بواسطة المستخدم: ${currentUser.uid}\nاسم الملف: ${file.name}`);
+
+                const response = await fetch(DISCORD_WEBHOOK_URL, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
                 });
 
-                if (response.ok) {
-                    status.textContent = "نجح الإرسال! ارجع الآن إلى Pipedream.";
-                    status.style.color = 'green';
-                } else {
-                    status.textContent = `فشل الإرسال: ${response.statusText}`;
-                    status.style.color = 'red';
+                if (!response.ok) {
+                    throw new Error(`فشل رفع الملف إلى ديسكورد. (Status: ${response.status})`);
                 }
-            } catch (error) {
-                status.textContent = `حدث خطأ: ${error.message}`;
-                status.style.color = 'red';
+                
+                const responseData = await response.json();
+                discordFileUrl = responseData.attachments[0].url;
             }
-        });
-    </script>
 
+            // --- الخطوة 2: حفظ بيانات المنشور في Firebase ---
+            showStatus(file ? '2/2: جارٍ حفظ المنشور...' : 'جارٍ حفظ المنشور...', 'info');
+            const postData = {
+                userId: currentUser.uid,
+                title: title,
+                content: content,
+                fileUrl: discordFileUrl, // رابط الملف من ديسكورد أو null
+                createdAt: new Date().toISOString()
+            };
+
+            const postsRef = ref(database, 'posts');
+            const newPostRef = push(postsRef);
+            await set(newPostRef, postData);
+
+            showStatus('تم إرسال همستك بنجاح!', 'success');
+            ui.form.reset();
+            ui.filePreview.innerHTML = '';
+
+            setTimeout(() => { hideStatus(); }, 5000);
+
+        } catch (error) {
+            console.error("فشل الإرسال:", error);
+            showStatus(`حدث خطأ فادح: ${error.message}`, 'error');
+        } finally {
+            setLoading(false);
+        }
+      });
+
+    </script>
 </body>
 </html>
