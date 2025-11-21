@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الموظف</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* --- نفس كود الـ CSS من ملف monthly_report.html بالضبط --- */
+        :root {
+            --dark-blue: #073b4c;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --border-color: #e5e7e9;
+            --light-gray: #f8f9fa;
+        }
+        body { font-family: 'Cairo', sans-serif; margin: 0; background: var(--light-gray); }
+        #details-container { display: none; /* إخفاء المحتوى حتى التحقق الكامل */ }
+        .main-header {
+            background: white; padding: 15px 5%; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            width: 90%; margin: 0 auto;
+        }
+        .header-title { font-size: 24px; font-weight: 700; color: var(--dark-blue); }
+        .back-button {
+            padding: 10px 20px; font-size: 16px; font-weight: 600; background: var(--dark-blue);
+            color: white; border-radius: 12px; text-decoration: none; transition: all 0.3s ease;
+        }
+        .main-content { padding: 30px 20px; }
+        .report-card {
+            background: white; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            max-width: 900px; margin: 0 auto;
+        }
+        .report-header {
+            padding: 20px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .month-navigation button {
+            background: none; border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 8px 12px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;
+        }
+        #month-year-title { font-size: 22px; font-weight: 600; color: var(--dark-blue); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; }
+        .calendar-header { text-align: center; padding: 10px 0; font-weight: 600; color: #6c757d; border-bottom: 1px solid var(--border-color); }
+        .calendar-day { position: relative; text-align: center; padding: 10px 5px; height: 80px; border: 1px solid #f1f3f4; font-size: 16px; font-weight: 600; transition: transform 0.2s; }
+        .calendar-day:not(.empty):hover { transform: scale(1.05); z-index: 2; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .calendar-day.empty { background-color: var(--light-gray); }
+        .calendar-day.present { background-color: #e8f8f5; color: var(--success-color); cursor: pointer; }
+        .calendar-day.absent { background-color: #fdedec; color: var(--danger-color); }
+        .calendar-day.future { background-color: #f4f6f7; color: #adb5bd; }
+        .day-number { font-size: 20px; }
+        .note-indicator { position: absolute; top: 5px; right: 5px; font-size: 12px; color: #ffc107; }
+        .tooltip { visibility: hidden; background-color: var(--dark-blue); color: #fff; text-align: right; border-radius: 6px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 14px; white-space: nowrap; width: max-content; }
+        .tooltip-note { border-top: 1px solid #495057; margin-top: 8px; padding-top: 8px; white-space: normal; max-width: 250px; font-style: italic; }
+        .tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: var(--dark-blue) transparent transparent transparent; }
+        .calendar-day:hover .tooltip { visibility: visible; opacity: 1; }
+        #loader { display: flex; justify-content: center; align-items: center; padding: 50px; }
+        .loader-spinner { border: 6px solid #f3f3f3; border-radius: 50%; border-top: 6px solid var(--dark-blue); width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #error-message { text-align: center; padding: 50px; font-size: 20px; color: var(--danger-color); }
+    </style>
+</head>
+<body>
+
+    <div id="details-container">
+        <header class="main-header">
+            <h1 id="employee-name-header" class="header-title"></h1>
+            <a href="dashboard.html" class="back-button"><i class="fa-solid fa-arrow-right-long"></i> العودة للوحة التحكم</a>
+        </header>
+        <main class="main-content">
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="month-navigation"><button id="prev-month-btn" title="الشهر السابق"><i class="fa-solid fa-chevron-left"></i></button></div>
+                    <h2 id="month-year-title"></h2>
+                    <div class="month-navigation"><button id="next-month-btn" title="الشهر التالي"><i class="fa-solid fa-chevron-right"></i></button></div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-header">الأحد</div><div class="calendar-header">الاثنين</div><div class="calendar-header">الثلاثاء</div><div class="calendar-header">الأربعاء</div><div class="calendar-header">الخميس</div><div class="calendar-header">الجمعة</div><div class="calendar-header">السبت</div>
+                </div>
+                <div id="calendar-body" class="calendar-grid"></div>
+                <div id="loader"><div class="loader-spinner"></div></div>
+            </div>
+        </main>
+    </div>
+    <div id="error-message" style="display: none;"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { /* ... ضع إعدادات Firebase هنا ... */ };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let targetEmployeeId = null;
+        let monthOffset = 0;
+
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const errorDiv = document.getElementById('error-message');
+        const detailsContainer = document.getElementById('details-container');
+
+        // --- حارس الأمان المزدوج ---
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email) {
+                // الخطوة 1: تأكدنا أنه المدير
+                const urlParams = new URLSearchParams(window.location.search);
+                targetEmployeeId = urlParams.get('id');
+
+                if (targetEmployeeId) {
+                    // الخطوة 2: تأكدنا من وجود ID في الرابط
+                    detailsContainer.style.display = 'block';
+                    initializePage();
+                } else {
+                    errorDiv.textContent = 'خطأ: لم يتم تحديد الموظف.';
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                // ليس المدير، اطرده
+                window.location.replace('admin_login.html');
+            }
+        });
+
+        async function initializePage() {
+            // جلب اسم الموظف لعرضه في الهيدر
+            const employeeDoc = await getDoc(doc(db, "employees", targetEmployeeId));
+            if (employeeDoc.exists()) {
+                document.getElementById('employee-name-header').textContent = `تقرير: ${employeeDoc.data().fullName}`;
+                generateCalendar(); // ابدأ في عرض تقويم الشهر الحالي
+            } else {
+                errorDiv.textContent = 'خطأ: الموظف المحدد غير موجود.';
+                errorDiv.style.display = 'block';
+                detailsContainer.style.display = 'none';
+            }
+        }
+
+        prevMonthBtn.addEventListener('click', () => { monthOffset--; generateCalendar(); });
+        nextMonthBtn.addEventListener('click', () => { if (monthOffset < 0) { monthOffset++; generateCalendar(); } });
+
+        async function generateCalendar() {
+            // --- هذا الكود هو نسخة طبق الأصل من الكود في monthly_report.html ---
+            // --- مع تغيير واحد فقط: استخدام targetEmployeeId بدلاً من currentUserId ---
+
+            const calendarBody = document.getElementById('calendar-body');
+            const loader = document.getElementById('loader');
+            calendarBody.innerHTML = '';
+            loader.style.display = 'flex';
+            nextMonthBtn.disabled = (monthOffset === 0);
+
+            const today = new Date();
+            const targetDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+            const month = targetDate.getMonth();
+            const year = targetDate.getFullYear();
+
+            document.getElementById('month-year-title').textContent = `${targetDate.toLocaleDateString('ar-EG', { month: 'long' })} ${year}`;
+
+            const monthStartDate = new Date(year, month, 1);
+            const monthEndDate = new Date(year, month + 1, 0, 23, 59, 59);
+            
+            const attendancePromise = getDocs(query(collection(db, "attendance_logs"), 
+                where("employee_id", "==", targetEmployeeId), // <-- التغيير هنا
+                where("clock_in_time", ">=", Timestamp.fromDate(monthStartDate)),
+                where("clock_in_time", "<=", Timestamp.fromDate(monthEndDate))
+            ));
+            const notesPromise = getDocs(query(collection(db, "notes"),
+                where("employee_id", "==", targetEmployeeId), // <-- التغيير هنا
+                where("sent_at", ">=", Timestamp.fromDate(monthStartDate)),
+                where("sent_at", "<=", Timestamp.fromDate(monthEndDate))
+            ));
+
+            const [attendanceSnapshot, notesSnapshot] = await Promise.all([attendancePromise, notesPromise]);
+            
+            const attendanceData = {};
+            attendanceSnapshot.forEach(doc => {
+                const data = doc.data();
+                const dateKey = data.clock_in_time.toDate().getDate();
+                attendanceData[dateKey] = {
+                    clockIn: data.clock_in_time.toDate(),
+                    clockOut: data.clock_out_time ? data.clock_out_time.toDate() : null
+                };
+            });
+
+            const notesData = {};
+            notesSnapshot.forEach(doc => {
+                const data = doc.data();
+                const dateKey = data.sent_at.toDate().getDate();
+                notesData[dateKey] = data.note_text;
+            });
+
+            loader.style.display = 'none';
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayOfMonth; i++) { calendarBody.innerHTML += `<div class="calendar-day empty"></div>`; }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('calendar-day');
+                const dayDate = new Date(year, month, day);
+                let tooltipContent = '', noteIndicator = '';
+
+                if (dayDate > today) { dayDiv.classList.add('future'); } 
+                else if (attendanceData[day]) {
+                    dayDiv.classList.add('present');
+                    const record = attendanceData[day];
+                    const clockInText = record.clockIn.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                    const clockOutText = record.clockOut ? record.clockOut.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : 'لم يسجل انصراف';
+                    tooltipContent += `<div><i class="fa-solid fa-right-to-bracket"></i> بدء: ${clockInText}</div>`;
+                    tooltipContent += `<div style="margin-top: 5px;"><i class="fa-solid fa-right-from-bracket"></i> إنهاء: ${clockOutText}</div>`;
+                } else { dayDiv.classList.add('absent'); }
+                
+                if (notesData[day]) {
+                    noteIndicator = `<i class="fa-solid fa-comment-dots note-indicator"></i>`;
+                    if (tooltipContent) { tooltipContent += `<div class="tooltip-note"><i class="fa-solid fa-pencil"></i> ${notesData[day]}</div>`; } 
+                    else {
+                        tooltipContent = `<div class="tooltip-note"><i class="fa-solid fa-pencil"></i> ${notesData[day]}</div>`;
+                        dayDiv.classList.remove('absent'); dayDiv.style.cursor = 'pointer';
+                    }
+                }
+
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>${noteIndicator}`;
+                if (tooltipContent) { dayDiv.innerHTML += `<div class="tooltip">${tooltipContent}</div>`; }
+                
+                calendarBody.appendChild(dayDiv);
+            }
+        }
+    </script>
+</body>
+</html>
